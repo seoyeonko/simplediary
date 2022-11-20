@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 const DiaryEditor = () => {
-  // const [author, setAuthor] = useState('');
-  // const [content, setContent] = useState('');
+  // useRef() 반환값 React.MutableRefObject: HTML DOM 접근 기능 제ㅇ
+  const authorInput = useRef();
+  const contentInput = useRef();
 
-  // [After] 동작이 비슷한 상태를 하나로 묶기!
   const [state, setState] = useState({
     author: '',
     content: '',
@@ -19,7 +19,16 @@ const DiaryEditor = () => {
   };
 
   const handleSubmit = () => {
-    console.log(state);
+    if (state.author.length < 1) {
+      authorInput.current.focus();
+      return;
+    }
+
+    if (state.content.length < 5) {
+      contentInput.current.focus();
+      return;
+    }
+
     alert('저장 성공');
   };
 
@@ -28,12 +37,14 @@ const DiaryEditor = () => {
       <h2>오늘의 일기</h2>
       <div>
         <input
+          ref={authorInput}
           name="author"
           value={state.author}
           onChange={handleChangeState}
         />
         <div>
           <textarea
+            ref={contentInput}
             name="content"
             value={state.content}
             onChange={handleChangeState}
