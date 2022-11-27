@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 
-const DiaryEditor = () => {
+const DiaryEditor = ({ onCreate }) => {
   // useRef() 반환값 React.MutableRefObject: HTML DOM 접근 기능 제ㅇ
   const authorInput = useRef();
   const contentInput = useRef();
@@ -29,7 +29,14 @@ const DiaryEditor = () => {
       return;
     }
 
+    onCreate(state.author, state.content, state.emotion);
     alert('저장 성공');
+    // 입력창 초기화
+    setState({
+      author: '',
+      content: '',
+      emotion: 1,
+    });
   };
 
   return (
