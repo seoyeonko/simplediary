@@ -1,8 +1,8 @@
-import { useMemo, useEffect, useRef, useState } from 'react';
+import { useCallback, useMemo, useEffect, useRef, useState } from 'react';
 import './App.css';
 import DiaryEditor from './DiaryEditor';
 import DiaryList from './DiaryList';
-import OptimizeTest from './OptimizeTest';
+// import OptimizeTest from './OptimizeTest';
 // import LifeCycle from './Lifecycle';
 
 // const dummyList = [
@@ -60,7 +60,11 @@ const App = () => {
     getData();
   }, []);
 
-  const onCreate = (author, content, emotion) => {
+  // useCallback(callback, dependency_array): 함수의 재생성
+  // - callback
+  // - dependency_array: [] 빈배열 -> 마운트되는 첫번째 시점에만 함수를 만듦
+  //    Issue! 일기 등록시 목록 사라지고 하나의 일기만 남게됨.. 두번째 인자의 빈배열 때문.. -> ** 함수형 업데이트 사용
+  const onCreate = useCallback((author, content, emotion) => {
     const created_date = new Date().getTime();
     const newItem = {
       author,
@@ -73,8 +77,11 @@ const App = () => {
     dataId.current += 1;
     // ...data: 원래 data
     // newItem: 새로 추가되는 item
-    setData([newItem, ...data]);
-  };
+    // ** 함수형 업데이트: setState() 함수에 함수를 전달
+    // (함수의 재생성하면서 항상 최신의 state를 참조할 수 있음)
+    // : 항상 최신의 데이터를 인자를 통해 업데이트 함
+    setData((data) => [newItem, ...data]);
+  }, []);
 
   const onRemove = (targetId) => {
     // console.log(`${targetId}가 삭제되었습니다.`); // test
@@ -117,7 +124,7 @@ const App = () => {
   return (
     <div className="App">
       {/* <LifeCycle /> */}
-      <OptimizeTest />
+      {/* <OptimizeTest /> */}
       <DiaryEditor onCreate={onCreate} />
       <div>전체 일기: {data.length}</div>
       <div>기분 좋은 일기 개수: {goodCount}</div>
