@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useEffect, useRef, useState } from 'react';
+import { useCallback, useMemo, useEffect, useRef, useReducer } from 'react';
 import './App.css';
 import DiaryEditor from './DiaryEditor';
 import DiaryList from './DiaryList';
@@ -31,9 +31,40 @@ import DiaryList from './DiaryList';
 
 // https://jsonplaceholder.typicode.com/comments
 
+// 상태 변화를 처리하는 함수 (컴포넌트로부터 state 분리)
+const reducer = (state, action) => {
+  switch (action.type) {
+    case 'INIT': {
+      return action.data;
+    }
+    case 'CREATE': {
+      const created_date = new Date().getTime();
+      const newItem = {
+        ...action.data,
+        created_date,
+      };
+
+      // 새로운 아이템 +  기존 아이템
+      return [newItem, ...state];
+    }
+    case 'REMOVE':
+      return state.filter((it) => it.id !== action.targetId);
+    case 'EDIT': {
+      return state.filter((it) =>
+        it.id === action.targetId
+          ? { ...it, content: action.newContent }
+          : { it }
+      );
+    }
+    default:
+      return state;
+  }
+};
+
 const App = () => {
   // DirayEditor, DiaryList 컴포넌트가 함께 사용할 일기 데이터
-  const [data, setData] = useState([]); // 빈 배열: 일기 0개
+  // const [data, setData] = useState([]); // 빈 배열: 일기 0개
+  const [data, dispatch] = useReducer(reducer, []);
 
   // useRef()를 통해 만든 객체 안의 current 값이 실제 엘리먼트 가르킴
   const dataId = useRef(0);
@@ -53,7 +84,10 @@ const App = () => {
         id: dataId.current++,
       };
     });
-    setData(initData);
+    // setData(initData); // setData -> reducer
+    // dispatch(): 상태변화를 일으킴
+    // action의 type: INIT, action의 data: initData
+    dispatch({ type: 'INIT', data: initData });
   };
 
   useEffect(() => {
@@ -65,14 +99,10 @@ const App = () => {
   // - dependency_array: [] 빈배열 -> 마운트되는 첫번째 시점에만 함수를 만듦
   //    Issue! 일기 등록시 목록 사라지고 하나의 일기만 남게됨.. 두번째 인자의 빈배열 때문.. -> ** 함수형 업데이트 사용
   const onCreate = useCallback((author, content, emotion) => {
-    const created_date = new Date().getTime();
-    const newItem = {
-      author,
-      content,
-      emotion,
-      created_date,
-      id: dataId.current,
-    };
+    dispatch({
+      type: 'CREATE',
+      data: { author, content, emotion, id: dataId.current },
+    });
     // dataid 증가
     dataId.current += 1;
     // ...data: 원래 data
@@ -80,27 +110,30 @@ const App = () => {
     // ** 함수형 업데이트: setState() 함수에 함수를 전달
     // (함수의 재생성하면서 항상 최신의 state를 참조할 수 있음)
     // : 항상 최신의 데이터를 인자를 통해 업데이트 함
-    setData((data) => [newItem, ...data]);
+    // setData((data) => [newItem, ...data]);
   }, []);
 
   const onRemove = useCallback((targetId) => {
+    dispatch({ type: 'REMOVE', targetId });
+
     // // console.log(`${targetId}가 삭제되었습니다.`); // test
     // const newDiaryList = data.filter((it) => it.id !== targetId);
     // // console.log(newDiaryList); test
     // setData(newDiaryList);
 
     // setState에 전달되는 파라미터에 최신 data가 전달되므로 다음과 같이 수정
-    setData((data) => data.filter((it) => it.id !== targetId));
+    // setData((data) => data.filter((it) => it.id !== targetId));
   }, []);
 
   const onEdit = useCallback((targetId, newContent) => {
-    setData((data) =>
-      data.map((it) =>
-        // 수정 대상 아이디 맞음; 원본 데이터 불러오고, content 값 변경
-        // 수정 대상 아이디 아님; 원본 데이터
-        it.id === targetId ? { ...it, content: newContent } : it
-      )
-    );
+    dispatch({ type: 'EDIT', targetId, newContent });
+    // setData((data) =>
+    //   data.map((it) =>
+    //     // 수정 대상 아이디 맞음; 원본 데이터 불러오고, content 값 변경
+    //     // 수정 대상 아이디 아님; 원본 데이터
+    //     it.id === targetId ? { ...it, content: newContent } : it
+    //   )
+    // );
   }, []);
 
   // useMemo: 연산을 최적화 하고 싶은 함수를 감싸주면 됨!
