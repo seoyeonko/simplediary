@@ -1,4 +1,12 @@
-import { useCallback, useMemo, useEffect, useRef, useReducer } from 'react';
+import React, {
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+  useReducer,
+} from 'react';
+// React: 이름 바꾸기 가능 (export defualt 만 괄호 없이 불러오기 가능)
+// {useXXX, useXXX, ...}: 비구조화 할당을 통해 import 하므로 이름 변경 불가능
 import './App.css';
 import DiaryEditor from './DiaryEditor';
 import DiaryList from './DiaryList';
@@ -50,7 +58,7 @@ const reducer = (state, action) => {
     case 'REMOVE':
       return state.filter((it) => it.id !== action.targetId);
     case 'EDIT': {
-      return state.filter((it) =>
+      return state.map((it) =>
         it.id === action.targetId
           ? { ...it, content: action.newContent }
           : { it }
@@ -60,6 +68,15 @@ const reducer = (state, action) => {
       return state;
   }
 };
+
+// Context API
+// why not "export default"?
+// export default : 파일 당 하나만 가능
+// export : 여러 개 가능
+// data state 전달용
+export const DiaryStateContext = React.createContext();
+// onCreate, onRemove, onEdit func 전달용
+export const DiaryDispatchContext = React.createContext();
 
 const App = () => {
   // DirayEditor, DiaryList 컴포넌트가 함께 사용할 일기 데이터
@@ -136,6 +153,11 @@ const App = () => {
     // );
   }, []);
 
+  // useMemo를 이용해 재생성되지 않도록 처리후 객체 반환
+  const memoizedDispatches = useMemo(() => {
+    return { onCreate, onRemove, onEdit };
+  }, []);
+
   // useMemo: 연산을 최적화 하고 싶은 함수를 감싸주면 됨!
   // useMemo(callback, dependency_array)
   // - callback: 콜백함수의 return 값을 최적화함
@@ -158,16 +180,24 @@ const App = () => {
   const { goodCount, badCount, goodRatio } = getDiaryAnalysis; // **주의! useMemo로 감싸져 있으니 함수가 아닌 값으로 사용해야 함!!
 
   return (
-    <div className="App">
-      {/* <LifeCycle /> */}
-      {/* <OptimizeTest /> */}
-      <DiaryEditor onCreate={onCreate} />
-      <div>전체 일기: {data.length}</div>
-      <div>기분 좋은 일기 개수: {goodCount}</div>
-      <div>기분 나쁜 일기 개수: {badCount}</div>
-      <div>기분 좋은 일기 비율: {goodRatio}%</div>
-      <DiaryList diaryList={data} onEdit={onEdit} onRemove={onRemove} />
-    </div>
+    // Issue! Provider도 '컴포넌트' 이기 때문에 data와 함께 onCreate, onRemove, onEdit 을 같이 내려주면,
+    //    data state가 변경될 때 마다 리렌더링 발생하여 결론적으로 최적화가 다 풀려버림..
+    // Solution! Provider 중첩!
+    <DiaryStateContext.Provider value={data}>
+      <DiaryDispatchContext.Provider value={memoizedDispatches}>
+        <div className="App">
+          {/* <LifeCycle /> */}
+          {/* <OptimizeTest /> */}
+          <DiaryEditor />
+
+          <div>전체 일기: {data.length}</div>
+          <div>기분 좋은 일기 개수: {goodCount}</div>
+          <div>기분 나쁜 일기 개수: {badCount}</div>
+          <div>기분 좋은 일기 비율: {goodRatio}%</div>
+          <DiaryList />
+        </div>
+      </DiaryDispatchContext.Provider>
+    </DiaryStateContext.Provider>
   );
 };
 
