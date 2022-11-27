@@ -83,22 +83,25 @@ const App = () => {
     setData((data) => [newItem, ...data]);
   }, []);
 
-  const onRemove = (targetId) => {
-    // console.log(`${targetId}가 삭제되었습니다.`); // test
-    const newDiaryList = data.filter((it) => it.id !== targetId);
-    // console.log(newDiaryList); test
-    setData(newDiaryList);
-  };
+  const onRemove = useCallback((targetId) => {
+    // // console.log(`${targetId}가 삭제되었습니다.`); // test
+    // const newDiaryList = data.filter((it) => it.id !== targetId);
+    // // console.log(newDiaryList); test
+    // setData(newDiaryList);
 
-  const onEdit = (targetId, newContent) => {
-    setData(
+    // setState에 전달되는 파라미터에 최신 data가 전달되므로 다음과 같이 수정
+    setData((data) => data.filter((it) => it.id !== targetId));
+  }, []);
+
+  const onEdit = useCallback((targetId, newContent) => {
+    setData((data) =>
       data.map((it) =>
         // 수정 대상 아이디 맞음; 원본 데이터 불러오고, content 값 변경
         // 수정 대상 아이디 아님; 원본 데이터
         it.id === targetId ? { ...it, content: newContent } : it
       )
     );
-  };
+  }, []);
 
   // useMemo: 연산을 최적화 하고 싶은 함수를 감싸주면 됨!
   // useMemo(callback, dependency_array)

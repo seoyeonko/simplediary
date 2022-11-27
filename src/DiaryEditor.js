@@ -1,10 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 const DiaryEditor = ({ onCreate }) => {
-  useEffect(() => {
-    console.log('DiaryEditor 렌더링');
-  });
-
   // useRef() 반환값 React.MutableRefObject: HTML DOM 접근 기능 제ㅇ
   const authorInput = useRef();
   const contentInput = useRef();
