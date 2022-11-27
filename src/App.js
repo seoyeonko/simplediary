@@ -2,6 +2,7 @@ import { useMemo, useEffect, useRef, useState } from 'react';
 import './App.css';
 import DiaryEditor from './DiaryEditor';
 import DiaryList from './DiaryList';
+import OptimizeTest from './OptimizeTest';
 // import LifeCycle from './Lifecycle';
 
 // const dummyList = [
@@ -101,7 +102,8 @@ const App = () => {
     // 2번 찍힘 -> why? 맨 처음 데이터 불러오기 전에 (즉, 빈배열일 때) 1회, 데이터 불러오고 난 후 2회
     // 새로운 일기가 추가될 때마다 콘솔에 찍힘
     // 하지만! [수정] 작업에서도 콘솔에 찍힘 -> 감정은 수정 불가능하기 때문에 불필요한 연산 발생
-    console.log('일기 분석 시작');
+    // console.log('일기 분석 시작'); // test
+
     const goodCount = data.filter((it) => it.emotion > 3).length;
     const badCount = data.length - goodCount;
     const goodRatio = (goodCount / data.length) * 100;
@@ -115,6 +117,7 @@ const App = () => {
   return (
     <div className="App">
       {/* <LifeCycle /> */}
+      <OptimizeTest />
       <DiaryEditor onCreate={onCreate} />
       <div>전체 일기: {data.length}</div>
       <div>기분 좋은 일기 개수: {goodCount}</div>
