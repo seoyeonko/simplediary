@@ -60,8 +60,11 @@ const reducer = (state, action) => {
     case 'EDIT': {
       return state.map((it) =>
         it.id === action.targetId
-          ? { ...it, content: action.newContent }
-          : { it }
+          ? {
+              ...it,
+              content: action.newContent,
+            }
+          : it
       );
     }
     default:
