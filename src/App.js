@@ -50,17 +50,27 @@ function App() {
     setData([newItem, ...data]);
   };
 
-  const onDelete = (targetId) => {
+  const onRemove = (targetId) => {
     // console.log(`${targetId}가 삭제되었습니다.`); // test
     const newDiaryList = data.filter((it) => it.id !== targetId);
     // console.log(newDiaryList); test
     setData(newDiaryList);
   };
 
+  const onEdit = (targetId, newContent) => {
+    setData(
+      data.map((it) =>
+        // 수정 대상 아이디 맞음; 원본 데이터 불러오고, content 값 변경
+        // 수정 대상 아이디 아님; 원본 데이터
+        it.id === targetId ? { ...it, content: newContent } : it
+      )
+    );
+  };
+
   return (
     <div className="App">
       <DiaryEditor onCreate={onCreate} />
-      <DiaryList diaryList={data} onDelete={onDelete} />
+      <DiaryList diaryList={data} onEdit={onEdit} onRemove={onRemove} />
     </div>
   );
 }
